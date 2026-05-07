@@ -1,0 +1,6 @@
+streamlit
+PyMuPDF
+groq
+pandas
+pydantic
+pydantic-settings

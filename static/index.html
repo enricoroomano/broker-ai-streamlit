@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Broker Intelligence System</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .drag-active {
+            border-color: #2563eb !important;
+            background-color: #eff6ff !important;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Custom Scrollbar for the table and modal */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Dark scrollbar for the JSON block */
+        .dark-scroll::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+
+        .dark-scroll::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+    </style>
+</head>
+
+<body class="h-screen flex overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside class="w-52 shrink-0 bg-slate-900 text-slate-300 flex flex-col border-r border-slate-800 transition-all">
+        <div class="h-16 flex items-center px-5 border-b border-slate-800">
+            <i data-lucide="shield-check" class="w-5 h-5 text-blue-500 mr-2 shrink-0"></i>
+            <span class="font-semibold text-white tracking-wide text-sm uppercase truncate">Broker System</span>
+        </div>
+
+        <div class="px-5 py-4 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Moduli</div>
+        <nav class="flex-1">
+            <a href="#" class="flex items-center px-5 py-3 bg-slate-800 border-l-4 border-blue-500 text-white">
+                <i data-lucide="file-scan" class="w-4 h-4 mr-3 shrink-0"></i>
+                <span class="text-sm font-medium truncate">Acquisizione Dati</span>
+            </a>
+            <a href="#"
+                class="flex items-center px-5 py-3 hover:bg-slate-800 hover:text-white transition-colors duration-150 border-l-4 border-transparent">
+                <i data-lucide="database" class="w-4 h-4 mr-3 text-slate-500 shrink-0"></i>
+                <span class="text-sm font-medium truncate">Archivio Polizze</span>
+            </a>
+        </nav>
+
+        <div class="p-5 border-t border-slate-800">
+            <div class="flex items-center">
+                <div class="w-2 h-2 rounded-full bg-emerald-500 mr-2 shrink-0"></div>
+                <span class="text-[11px] text-slate-400 truncate">Motore AI: Operativo</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col overflow-hidden relative">
+        <!-- Header -->
+        <header class="h-16 shrink-0 bg-white border-b border-slate-200 flex items-center justify-between px-8 z-10">
+            <div>
+                <h1 class="text-lg font-semibold text-slate-800">Elaborazione Documentale</h1>
+                <p class="text-xs text-slate-500 mt-0.5">Importazione e classificazione automatica via Intelligenza
+                    Artificiale.</p>
+            </div>
+        </header>
+
+        <!-- Area Scrollabile Centrale -->
+        <div class="flex-1 overflow-y-auto p-6 lg:p-8 bg-slate-50">
+            <div class="w-full space-y-6">
+
+                <!-- Upload Section -->
+                <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                        <h2 class="text-sm font-semibold text-slate-700">Area di Caricamento</h2>
+                        <span class="text-xs font-medium text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md">Supporta
+                            PDF multipli</span>
+                    </div>
+
+                    <div class="p-6">
+                        <div id="drop-zone"
+                            class="border-2 border-dashed border-slate-300 rounded-lg p-10 text-center transition-all duration-200 cursor-pointer hover:border-slate-400 hover:bg-slate-50 group">
+                            <div
+                                class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-50 text-blue-600 mb-4 group-hover:scale-110 transition-transform">
+                                <i data-lucide="upload-cloud" class="w-6 h-6"></i>
+                            </div>
+                            <h3 class="text-base font-medium text-slate-900 mb-1">Trascina i documenti qui</h3>
+                            <p class="text-sm text-slate-500 mb-4">Oppure clicca per selezionare i file dal tuo
+                                computer.</p>
+                            <input type="file" id="file-input" multiple accept="application/pdf" class="hidden">
+                        </div>
+
+                        <!-- Indicatore Caricamento -->
+                        <div id="loading-indicator"
+                            class="hidden mt-6 bg-blue-50 border border-blue-100 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="flex items-center text-blue-700">
+                                    <i data-lucide="loader-2" class="w-4 h-4 mr-2 animate-spin"></i>
+                                    <span class="text-sm font-medium">Analisi semantica in corso...</span>
+                                </div>
+                            </div>
+                            <div class="w-full bg-blue-200/50 rounded-full h-1.5">
+                                <div class="bg-blue-600 h-1.5 rounded-full w-full animate-pulse"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabella Risultati -->
+                <div id="results-container"
+                    class="hidden bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                        <div class="flex items-center">
+                            <i data-lucide="table-properties" class="w-4 h-4 mr-2 text-slate-500"></i>
+                            <h3 class="text-sm font-semibold text-slate-700">Dati Strutturati Estratti</h3>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
+                            <thead
+                                class="text-xs text-slate-500 uppercase tracking-wider bg-white border-b border-slate-200">
+                                <tr>
+                                    <th scope="col" class="px-6 py-4 font-medium whitespace-nowrap">Stato</th>
+                                    <th scope="col" class="px-6 py-4 font-medium">Documento</th>
+                                    <th scope="col" class="px-6 py-4 font-medium">Contraente</th>
+                                    <th scope="col" class="px-6 py-4 font-medium">Compagnia</th>
+                                    <th scope="col" class="px-6 py-4 font-medium">Ramo</th>
+                                    <th scope="col" class="px-6 py-4 font-medium whitespace-nowrap">N. Polizza</th>
+                                    <th scope="col" class="px-6 py-4 font-medium text-right whitespace-nowrap">Premio
+                                    </th>
+                                    <th scope="col" class="px-6 py-4 font-medium text-center whitespace-nowrap">Azioni
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="results-body" class="divide-y divide-slate-100">
+                                <!-- Le righe verranno iniettate qui da JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal per i dettagli del JSON (inizialmente nascosto) -->
+    <div id="details-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+        <!-- Overlay scuro -->
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeModal()"></div>
+
+        <!-- Box centrale -->
+        <div
+            class="relative bg-white rounded-xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh] transform transition-all scale-100">
+            <!-- Header Modal -->
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-xl">
+                <h3 class="text-base font-semibold text-slate-800 flex items-center">
+                    <i data-lucide="file-json-2" class="w-5 h-5 mr-2 text-blue-600"></i>
+                    Ispezione Dati Estratti (JSON)
+                </h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 transition-colors p-1">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Body Modal (Scrollabile) -->
+            <div class="p-6 overflow-y-auto bg-slate-900">
+                <pre id="modal-json-content"
+                    class="text-emerald-400 font-mono text-xs leading-relaxed whitespace-pre-wrap break-words dark-scroll"></pre>
+            </div>
+
+            <!-- Footer Modal -->
+            <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 rounded-b-xl flex justify-end">
+                <button onclick="closeModal()"
+                    class="px-5 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100 transition-colors focus:outline-none">
+                    Chiudi Finestra
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const resultsContainer = document.getElementById('results-container');
+        const resultsBody = document.getElementById('results-body');
+
+        // Array globale per salvare i risultati e usarli nel modale
+        let globalResults = [];
+
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+            dropZone.addEventListener(eventName, () => dropZone.classList.add('drag-active'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+            dropZone.addEventListener(eventName, () => dropZone.classList.remove('drag-active'), false);
+        });
+
+        function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+
+        dropZone.addEventListener('drop', (e) => {
+            if (e.dataTransfer.files.length > 0) processFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length > 0) processFiles(fileInput.files);
+        });
+
+        async function processFiles(files) {
+            loadingIndicator.classList.remove('hidden');
+            resultsContainer.classList.add('hidden');
+            dropZone.classList.add('opacity-50', 'pointer-events-none');
+
+            const formData = new FormData();
+            for (let i = 0; i < files.length; i++) {
+                formData.append('files', files[i]);
+            }
+
+            try {
+                const response = await fetch('/api/extract', { method: 'POST', body: formData });
+                if (!response.ok) throw new Error("Errore di comunicazione con il server AI.");
+
+                const jsonResponse = await response.json();
+                globalResults = jsonResponse.data; // Salviamo i dati
+                renderResults(globalResults);
+            } catch (error) {
+                alert("Si è verificato un errore di sistema: " + error.message);
+            } finally {
+                loadingIndicator.classList.add('hidden');
+                dropZone.classList.remove('opacity-50', 'pointer-events-none');
+                fileInput.value = '';
+            }
+        }
+
+        function renderResults(data) {
+            resultsBody.innerHTML = '';
+
+            data.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.className = "bg-white hover:bg-slate-50 transition-colors duration-150 group";
+
+                if (item.error) {
+                    tr.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center text-red-600 bg-red-50 px-2 py-1 rounded w-fit">
+                                <i data-lucide="alert-circle" class="w-4 h-4 mr-1"></i><span class="text-xs font-medium">Fallito</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 font-medium text-slate-900">${item.nome_file}</td>
+                        <td colspan="5" class="px-6 py-4 text-sm text-red-500">${item.error}</td>
+                        <td class="px-6 py-4 text-center">
+                            <button onclick="openModal(${index})" class="inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium text-blue-600 border border-blue-200 rounded hover:bg-blue-50 transition-colors">
+                                <i data-lucide="eye" class="w-3.5 h-3.5 mr-1.5"></i> Info
+                            </button>
+                        </td>
+                    `;
+                } else {
+                    const premioFmt = formatCurrency(item.premio_totale);
+                    tr.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center text-emerald-700 bg-emerald-50 px-2 py-1 rounded w-fit">
+                                <i data-lucide="check-circle-2" class="w-4 h-4 mr-1"></i><span class="text-xs font-medium">Completato</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center">
+                                <i data-lucide="file-text" class="w-4 h-4 text-slate-400 mr-2 shrink-0 group-hover:text-blue-500 transition-colors"></i>
+                                <span class="font-medium text-slate-900 truncate block max-w-[200px] xl:max-w-[300px]" title="${item.nome_file}">${item.nome_file}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-slate-600 font-medium">${item.contraente}</td>
+                        <td class="px-6 py-4 text-slate-900 font-semibold">${item.compagnia}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">${item.tipo_polizza}</span>
+                        </td>
+                        <td class="px-6 py-4 font-mono text-xs text-slate-500 whitespace-nowrap">${item.numero_polizza}</td>
+                        <td class="px-6 py-4 text-right font-semibold text-slate-900 whitespace-nowrap">${premioFmt}</td>
+                        <td class="px-6 py-4 text-center whitespace-nowrap">
+                            <!-- BOTTONE ISPEZIONA CHE APRE IL MODAL -->
+                            <button onclick="openModal(${index})" class="inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors">
+                                <i data-lucide="eye" class="w-3.5 h-3.5 mr-1.5"></i> Ispeziona
+                            </button>
+                        </td>
+                    `;
+                }
+                resultsBody.appendChild(tr);
+            });
+
+            lucide.createIcons();
+            resultsContainer.classList.remove('hidden');
+        }
+
+        function formatCurrency(value) {
+            if (!value || value.toString().toLowerCase() === "non trovato") return '<span class="text-slate-400 text-xs font-normal">N/D</span>';
+            const num = parseFloat(value.toString().replace(',', '.').replace(/[^\d.-]/g, ''));
+            if (isNaN(num)) return value;
+            return new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(num);
+        }
+
+        // Funzioni per gestire il Modal dei dettagli
+        function openModal(index) {
+            const data = globalResults[index];
+            const modal = document.getElementById('details-modal');
+            const jsonContent = document.getElementById('modal-json-content');
+
+            // Inserisce il JSON formattato (con 4 spazi di indentazione per la massima leggibilità)
+            jsonContent.textContent = JSON.stringify(data, null, 4);
+
+            // Mostra il modal
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('details-modal');
+            modal.classList.add('hidden');
+        }
+
+        // Chiudi il modal se si preme ESC sulla tastiera
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+    </script>
+</body>
+
+</html>
